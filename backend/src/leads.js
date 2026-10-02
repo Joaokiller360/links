@@ -21,12 +21,11 @@ function enqueue(fn) {
 export function validateLead(body) {
   const name = typeof body?.name === 'string' ? body.name.replace(CONTROL_RE_ALL, '').trim() : '';
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
-  const lang = body?.lang === 'pt' ? 'pt' : 'es';
   const errors = {};
   if (name.length < 2 || name.length > 100) errors.name = 'invalid_name';
   // Longitud antes que la regex, para no evaluar entradas enormes.
   if (email.length > 254 || CONTROL_RE.test(email) || !EMAIL_RE.test(email)) errors.email = 'invalid_email';
-  return { lead: { name, email, lang }, errors };
+  return { lead: { name, email }, errors };
 }
 
 export function saveLead(lead) {

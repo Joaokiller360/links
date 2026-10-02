@@ -31,7 +31,7 @@ npm run dev
 
 Abre `http://localhost:5173/admin` y entra con tu `ADMIN_EMAIL` y `ADMIN_PASSWORD`. Desde ahí puedes:
 
-- **Contenido:** editar nombre, iniciales y frase (ES/PT), y crear, editar, reordenar o borrar links y redes. Solo se aceptan URLs `https://`.
+- **Contenido:** editar nombre, iniciales y frase, y crear, editar, reordenar o borrar links y redes. Solo se aceptan URLs `https://`.
 - **Contactos:** ver y borrar los correos que te dejaron en el formulario.
 
 Los datos se guardan en `backend/data/` (`content.json` y `leads.json`). Esa carpeta no va a git: haz copia de seguridad tú.
@@ -41,8 +41,8 @@ Los datos se guardan en `backend/data/` (`content.json` y `leads.json`). Esa car
 | Método | Ruta                       | Acceso | Descripción                          |
 | ------ | -------------------------- | ------ | ------------------------------------ |
 | GET    | `/api/health`              | público | Healthcheck                         |
-| GET    | `/api/links?lang=es\|pt`   | público | Perfil, links y redes traducidos    |
-| POST   | `/api/leads`               | público | `{ name, email, lang }`             |
+| GET    | `/api/links`               | público | Perfil, links y redes               |
+| POST   | `/api/leads`               | público | `{ name, email }`                   |
 | POST   | `/api/admin/login`         | —      | `{ email, password }` → token (8 h) |
 | POST   | `/api/admin/logout`        | admin  | Cierra la sesión                     |
 | GET/PUT| `/api/admin/content`       | admin  | Leer / guardar todo el contenido     |

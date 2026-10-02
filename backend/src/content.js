@@ -2,9 +2,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readJson, writeJsonAtomic } from './store.js';
 
-// El contenido se edita desde el panel /#/admin y se guarda en data/content.json.
+// El contenido se edita desde el panel /admin y se guarda en data/content.json.
 // Esto es solo el contenido inicial mientras ese archivo no existe.
-export const SUPPORTED_LANGS = ['es', 'pt'];
 export const NETWORKS = ['instagram', 'tiktok', 'youtube', 'x', 'github', 'linkedin', 'otro'];
 
 const FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'content.json');
@@ -13,10 +12,7 @@ const DEFAULT_CONTENT = {
   profile: {
     name: 'Tu Nombre',
     initials: 'TN',
-    tagline: {
-      es: ['Una frase corta sobre ti.', 'Lo que haces o lo que te gusta.'],
-      pt: ['Uma frase curta sobre você.', 'O que você faz ou do que gosta.'],
-    },
+    tagline: ['Una frase corta sobre ti.', 'Lo que haces o lo que te gusta.'],
   },
   links: [
     {
@@ -24,24 +20,24 @@ const DEFAULT_CONTENT = {
       icon: '🌐',
       url: 'https://example.com/',
       primary: true,
-      title: { es: 'Mi web personal', pt: 'Meu site pessoal' },
-      subtitle: { es: 'Todo sobre mí en un solo lugar', pt: 'Tudo sobre mim em um só lugar' },
+      title: 'Mi web personal',
+      subtitle: 'Todo sobre mí en un solo lugar',
     },
     {
       id: 'l2',
       icon: '💬',
       url: 'https://wa.me/10000000000',
       primary: false,
-      title: { es: 'Escríbeme por WhatsApp', pt: 'Fale comigo pelo WhatsApp' },
-      subtitle: { es: 'Respondo rápido', pt: 'Respondo rápido' },
+      title: 'Escríbeme por WhatsApp',
+      subtitle: 'Respondo rápido',
     },
     {
       id: 'l3',
       icon: '✍️',
       url: 'https://example.com/blog',
       primary: false,
-      title: { es: 'Mi blog', pt: 'Meu blog' },
-      subtitle: { es: 'Notas, ideas y lo que voy aprendiendo', pt: 'Notas, ideias e o que venho aprendendo' },
+      title: 'Mi blog',
+      subtitle: 'Notas, ideas y lo que voy aprendiendo',
     },
   ],
   socials: [
@@ -51,25 +47,25 @@ const DEFAULT_CONTENT = {
 
 let cache = null;
 
+// Versiones anteriores guardaban textos por idioma ({ es, pt }); se conserva el español.
+const spanish = (value) => (value && typeof value === 'object' && !Array.isArray(value) ? value.es : value);
+
+function migrate(content) {
+  return {
+    ...content,
+    profile: { ...content.profile, tagline: spanish(content.profile.tagline) },
+    links: content.links.map((link) => ({ ...link, title: spanish(link.title), subtitle: spanish(link.subtitle) })),
+  };
+}
+
 export async function loadContent() {
-  if (!cache) cache = await readJson(FILE, DEFAULT_CONTENT);
+  if (!cache) cache = migrate(await readJson(FILE, DEFAULT_CONTENT));
   return cache;
 }
 
 export async function saveContent(content) {
   await writeJsonAtomic(FILE, content);
   cache = content;
-}
-
-export function localize(content, lang) {
-  const l = SUPPORTED_LANGS.includes(lang) ? lang : 'es';
-  const { profile, links, socials } = content;
-  return {
-    lang: l,
-    profile: { name: profile.name, initials: profile.initials, tagline: profile.tagline[l] },
-    links: links.map(({ title, subtitle, ...rest }) => ({ ...rest, title: title[l], subtitle: subtitle[l] })),
-    socials,
-  };
 }
 
 function text(value, min, max) {
@@ -88,16 +84,6 @@ function httpsUrl(value) {
   }
 }
 
-function translated(value, min, max) {
-  const out = {};
-  for (const l of SUPPORTED_LANGS) {
-    const v = text(value?.[l], min, max);
-    if (v === null) return null;
-    out[l] = v;
-  }
-  return out;
-}
-
 // Reconstruye el contenido campo por campo; nada del input se copia sin validar.
 export function validateContent(input) {
   const errors = [];
@@ -106,14 +92,12 @@ export function validateContent(input) {
   const initials = text(p?.initials, 1, 3);
   if (name === null) errors.push('profile.name');
   if (initials === null) errors.push('profile.initials');
-  const tagline = {};
-  for (const l of SUPPORTED_LANGS) {
-    const lines = p?.tagline?.[l];
-    if (!Array.isArray(lines) || lines.length > 3 || lines.some((x) => text(x, 0, 120) === null)) {
-      errors.push(`profile.tagline.${l}`);
-    } else {
-      tagline[l] = lines.map((x) => x.trim()).filter(Boolean);
-    }
+  const lines = p?.tagline;
+  let tagline = [];
+  if (!Array.isArray(lines) || lines.length > 3 || lines.some((x) => text(x, 0, 120) === null)) {
+    errors.push('profile.tagline');
+  } else {
+    tagline = lines.map((x) => x.trim()).filter(Boolean);
   }
 
   let links = [];
@@ -126,8 +110,8 @@ export function validateContent(input) {
         icon: text(k?.icon ?? '', 0, 8),
         url: httpsUrl(k?.url),
         primary: k?.primary === true,
-        title: translated(k?.title, 1, 80),
-        subtitle: translated(k?.subtitle, 0, 120),
+        title: text(k?.title, 1, 80),
+        subtitle: text(k?.subtitle ?? '', 0, 120),
       };
       for (const field of ['icon', 'url', 'title', 'subtitle']) {
         if (link[field] === null) errors.push(`links.${i}.${field}`);

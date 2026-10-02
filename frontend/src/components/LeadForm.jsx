@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { submitLead } from '../api.js';
+import { strings as t } from '../strings.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[^\s@.]{2,}$/;
 
-export default function LeadForm({ lang, t }) {
+export default function LeadForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle | sending | done | error
@@ -16,7 +17,7 @@ export default function LeadForm({ lang, t }) {
     setFieldError(null);
     setStatus('sending');
     try {
-      await submitLead({ name, email, lang });
+      await submitLead({ name, email });
       setStatus('done');
     } catch (err) {
       if (err.fields?.name) setFieldError('name');

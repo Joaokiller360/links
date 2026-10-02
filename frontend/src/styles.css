@@ -86,46 +86,16 @@ input {
 .name-skeleton {
   width: 140px;
   height: 22px;
-  margin: 14px 0 62px;
+  margin: 14px 0 50px;
   border-radius: 6px;
   background: var(--card);
 }
 
 .tagline {
-  margin: 8px 0 16px;
+  margin: 8px 0 0;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
-}
-
-.lang-toggle {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--card);
-}
-
-.lang-toggle button {
-  border: 0;
-  border-radius: 999px;
-  padding: 4px 12px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.lang-toggle button:hover {
-  color: var(--text);
-}
-
-.lang-toggle button.active {
-  background: var(--green);
-  color: var(--green-ink);
 }
 
 /* Links */
@@ -156,7 +126,6 @@ input {
 
 .link-card:focus-visible,
 .social-chip:focus-visible,
-.lang-toggle button:focus-visible,
 .lead-form button:focus-visible {
   outline: 2px solid var(--green);
   outline-offset: 2px;
@@ -505,6 +474,10 @@ input {
   min-width: 0;
   color: var(--muted);
   font-size: 12px;
+}
+
+.field.wide {
+  grid-column: 1 / -1;
 }
 
 .field input,

@@ -1,7 +1,7 @@
 export const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
-export async function fetchLinks(lang, signal) {
-  const res = await fetch(`${BASE}/api/links?lang=${lang}`, { signal });
+export async function fetchLinks(signal) {
+  const res = await fetch(`${BASE}/api/links`, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }

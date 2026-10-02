@@ -3,7 +3,6 @@ import { adminApi } from './adminApi.js';
 import { safeUrl } from '../safeUrl.js';
 
 const TOKEN_KEY = 'adminToken';
-const LANGS = ['es', 'pt'];
 const NETWORKS = ['instagram', 'tiktok', 'youtube', 'x', 'github', 'linkedin', 'otro'];
 
 function readToken() {
@@ -166,8 +165,8 @@ const emptyLink = () => ({
   icon: '🔗',
   url: 'https://',
   primary: false,
-  title: { es: '', pt: '' },
-  subtitle: { es: '', pt: '' },
+  title: '',
+  subtitle: '',
 });
 
 const emptySocial = () => ({ network: 'instagram', handle: '@', url: 'https://' });
@@ -239,15 +238,13 @@ function ContentEditor({ token, onUnauthorized }) {
               onChange={(e) => edit((c) => (c.profile.initials = e.target.value))}
             />
           </Field>
-          {LANGS.map((l) => (
-            <Field key={l} label={`Frase (${l.toUpperCase()}) · una línea por renglón, máx. 3`} invalid={has(`profile.tagline.${l}`)}>
-              <textarea
-                rows={3}
-                value={profile.tagline[l].join('\n')}
-                onChange={(e) => edit((c) => (c.profile.tagline[l] = e.target.value.split('\n').slice(0, 3)))}
-              />
-            </Field>
-          ))}
+          <Field label="Frase · una línea por renglón, máx. 3" invalid={has('profile.tagline')} wide>
+            <textarea
+              rows={3}
+              value={profile.tagline.join('\n')}
+              onChange={(e) => edit((c) => (c.profile.tagline = e.target.value.split('\n').slice(0, 3)))}
+            />
+          </Field>
         </div>
       </section>
 
@@ -268,7 +265,7 @@ function ContentEditor({ token, onUnauthorized }) {
           <div key={i} className="admin-item">
             <div className="admin-item-head">
               <strong>
-                {link.icon} {link.title.es || 'Link sin título'}
+                {link.icon} {link.title || 'Link sin título'}
               </strong>
               <div className="admin-actions">
                 <button className="btn icon" type="button" aria-label="Subir" onClick={() => edit((c) => move(c.links, i, -1))}>
@@ -301,24 +298,16 @@ function ContentEditor({ token, onUnauthorized }) {
               </Field>
             </div>
             <div className="grid-2">
-              {LANGS.map((l) => (
-                <Field key={`t${l}`} label={`Título (${l.toUpperCase()})`} invalid={has(`links.${i}.title`)}>
-                  <input
-                    value={link.title[l]}
-                    maxLength={80}
-                    onChange={(e) => edit((c) => (c.links[i].title[l] = e.target.value))}
-                  />
-                </Field>
-              ))}
-              {LANGS.map((l) => (
-                <Field key={`s${l}`} label={`Subtítulo (${l.toUpperCase()}) · opcional`} invalid={has(`links.${i}.subtitle`)}>
-                  <input
-                    value={link.subtitle[l]}
-                    maxLength={120}
-                    onChange={(e) => edit((c) => (c.links[i].subtitle[l] = e.target.value))}
-                  />
-                </Field>
-              ))}
+              <Field label="Título" invalid={has(`links.${i}.title`)}>
+                <input value={link.title} maxLength={80} onChange={(e) => edit((c) => (c.links[i].title = e.target.value))} />
+              </Field>
+              <Field label="Subtítulo · opcional" invalid={has(`links.${i}.subtitle`)}>
+                <input
+                  value={link.subtitle}
+                  maxLength={120}
+                  onChange={(e) => edit((c) => (c.links[i].subtitle = e.target.value))}
+                />
+              </Field>
             </div>
             <label className="check">
               <input
@@ -388,9 +377,9 @@ function ContentEditor({ token, onUnauthorized }) {
   );
 }
 
-function Field({ label, invalid, children }) {
+function Field({ label, invalid, wide, children }) {
   return (
-    <label className={`field${invalid ? ' invalid' : ''}`}>
+    <label className={`field${invalid ? ' invalid' : ''}${wide ? ' wide' : ''}`}>
       <span>{label}</span>
       {children}
     </label>
@@ -436,7 +425,6 @@ function Leads({ token, onUnauthorized }) {
               <tr>
                 <th>Nombre</th>
                 <th>Correo</th>
-                <th>Idioma</th>
                 <th>Fecha</th>
                 <th />
               </tr>
@@ -446,7 +434,6 @@ function Leads({ token, onUnauthorized }) {
                 <tr key={l.email}>
                   <td>{l.name}</td>
                   <td>{l.email}</td>
-                  <td>{l.lang}</td>
                   <td>{new Date(l.createdAt).toLocaleString()}</td>
                   <td>
                     <button className="btn icon danger" type="button" aria-label="Eliminar" onClick={() => handleDelete(l.email)}>

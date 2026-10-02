@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import adminRouter from './admin.js';
-import { loadContent, localize } from './content.js';
+import { loadContent } from './content.js';
 import { saveLead, validateLead } from './leads.js';
 
 const PORT = Number(process.env.PORT) || 4010;
@@ -27,9 +27,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/links', async (req, res, next) => {
+app.get('/api/links', async (_req, res, next) => {
   try {
-    res.json(localize(await loadContent(), req.query.lang));
+    res.json(await loadContent());
   } catch (err) {
     next(err);
   }
