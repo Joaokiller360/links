@@ -17,5 +17,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.3.3",
     "vite": "^6.0.7"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
