@@ -161,7 +161,7 @@ function Dashboard({ token, onSignOut }) {
   return (
     <main className={page}>
       <header className={row}>
-        <h1 className={h1}>Panel</h1>
+        <h1 className={h1}>Panel De Administración</h1>
         <div className={actions}>
           <a className={btn()} href="/" target="_blank" rel="noopener noreferrer">
             Ver página
