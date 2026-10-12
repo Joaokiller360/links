@@ -10,7 +10,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY src ./src
 
-# data/ guarda content.json y leads.json: monta aquí un volumen para no perderlos al redesplegar.
+# data/ guarda content.json, leads.json y avatar: monta aquí un volumen para no perderlos al redesplegar.
 RUN mkdir -p data && chown node:node data
 USER node
 

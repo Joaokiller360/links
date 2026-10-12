@@ -1,13 +1,15 @@
 import { BASE } from '../api.js';
 
 async function request(path, { token, method = 'GET', body } = {}) {
+  // Un Blob (la foto) se envía en crudo; el resto, como JSON.
+  const raw = body instanceof Blob;
   const headers = {};
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (body !== undefined) headers['Content-Type'] = raw ? body.type : 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE}/api/admin${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined || raw ? body : JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -24,6 +26,8 @@ export const adminApi = {
   logout: (token) => request('/logout', { token, method: 'POST' }),
   getContent: (token) => request('/content', { token }),
   saveContent: (token, content) => request('/content', { token, method: 'PUT', body: content }),
+  uploadAvatar: (token, image) => request('/avatar', { token, method: 'PUT', body: image }),
+  deleteAvatar: (token) => request('/avatar', { token, method: 'DELETE' }),
   getLeads: (token) => request('/leads', { token }),
   deleteLead: (token, email) => request(`/leads/${encodeURIComponent(email)}`, { token, method: 'DELETE' }),
 };

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import adminRouter from './admin.js';
+import { loadAvatar } from './avatar.js';
 import { loadContent } from './content.js';
 import { saveLead, validateLead } from './leads.js';
 
@@ -30,6 +31,23 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/links', async (_req, res, next) => {
   try {
     res.json(await loadContent());
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/api/avatar', async (_req, res, next) => {
+  try {
+    const avatar = await loadAvatar();
+    if (!avatar?.type) return res.status(404).json({ ok: false, error: 'not_found' });
+    res.set({
+      'Content-Type': avatar.type,
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'",
+      // La URL lleva ?v=<versión>, así que cada foto nueva tiene una URL distinta.
+      'Cache-Control': 'public, max-age=86400',
+    });
+    res.send(avatar.data);
   } catch (err) {
     next(err);
   }

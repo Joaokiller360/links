@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchLinks } from './api.js';
+import { avatarUrl, fetchLinks } from './api.js';
 import { strings as t } from './strings.js';
 import Avatar from './components/Avatar.jsx';
 import LinkCard from './components/LinkCard.jsx';
@@ -32,7 +32,7 @@ export default function App() {
       <header className="header">
         {profile ? (
           <>
-            <Avatar initials={profile.initials} />
+            <Avatar initials={profile.initials} photo={avatarUrl(profile.avatar)} />
             <h1 className="name">{profile.name}</h1>
             <p className="tagline">
               {profile.tagline.map((line, i) => (

@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApi } from './adminApi.js';
+import { avatarUrl } from '../api.js';
 import { safeUrl } from '../safeUrl.js';
+import Avatar from '../components/Avatar.jsx';
 
 const TOKEN_KEY = 'adminToken';
 const NETWORKS = ['instagram', 'tiktok', 'youtube', 'x', 'github', 'linkedin', 'otro'];
@@ -227,11 +229,17 @@ function ContentEditor({ token, onUnauthorized }) {
     <div className="admin-editor">
       <section className="admin-card">
         <h2>Perfil</h2>
+        <AvatarPicker
+          token={token}
+          profile={profile}
+          onUnauthorized={onUnauthorized}
+          onChange={(avatar) => setContent((prev) => ({ ...prev, profile: { ...prev.profile, avatar } }))}
+        />
         <div className="grid-2">
           <Field label="Nombre" invalid={has('profile.name')}>
             <input value={profile.name} maxLength={60} onChange={(e) => edit((c) => (c.profile.name = e.target.value))} />
           </Field>
-          <Field label="Iniciales (avatar)" invalid={has('profile.initials')}>
+          <Field label="Iniciales (si no hay foto)" invalid={has('profile.initials')}>
             <input
               value={profile.initials}
               maxLength={3}
@@ -373,6 +381,75 @@ function ContentEditor({ token, onUnauthorized }) {
           Guardar cambios
         </button>
       </div>
+    </div>
+  );
+}
+
+const AVATAR_SIZE = 400;
+
+// Recorta al centro en cuadrado y reduce a 400 px. Al recodificar se descartan los
+// metadatos EXIF (p. ej. la ubicación GPS de las fotos del móvil).
+async function prepareAvatar(file) {
+  const bitmap = await createImageBitmap(file);
+  const side = Math.min(bitmap.width, bitmap.height);
+  const size = Math.min(side, AVATAR_SIZE);
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  canvas
+    .getContext('2d')
+    .drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
+  bitmap.close();
+  // Si el navegador no sabe generar WebP, toBlob devuelve PNG.
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', 0.85));
+  if (!blob) throw new Error('encode_failed');
+  return blob;
+}
+
+function AvatarPicker({ token, profile, onChange, onUnauthorized }) {
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function run(action) {
+    setBusy(true);
+    setError(null);
+    try {
+      const { content } = await action();
+      onChange(content.profile.avatar);
+    } catch (err) {
+      if (err.status === 401) return onUnauthorized();
+      setError(err.status === 413 ? 'La imagen es demasiado grande.' : 'No se pudo procesar la imagen.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (file) run(async () => adminApi.uploadAvatar(token, await prepareAvatar(file)));
+  }
+
+  return (
+    <div className="admin-avatar">
+      <Avatar initials={profile.initials} photo={avatarUrl(profile.avatar)} />
+      <div className="admin-actions">
+        <input ref={input} type="file" accept="image/*" hidden onChange={handleFile} />
+        <button className="btn" type="button" disabled={busy} onClick={() => input.current.click()}>
+          {busy ? 'Subiendo…' : profile.avatar ? 'Cambiar foto' : 'Subir foto'}
+        </button>
+        {profile.avatar && (
+          <button
+            className="btn danger"
+            type="button"
+            disabled={busy}
+            onClick={() => window.confirm('¿Quitar la foto?') && run(() => adminApi.deleteAvatar(token))}
+          >
+            Quitar
+          </button>
+        )}
+      </div>
+      {error && <p className="admin-msg error">{error}</p>}
     </div>
   );
 }

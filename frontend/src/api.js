@@ -1,5 +1,8 @@
 export const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
+// `version` cambia con cada foto nueva, así el navegador no muestra la anterior desde caché.
+export const avatarUrl = (version) => (version ? `${BASE}/api/avatar?v=${encodeURIComponent(version)}` : null);
+
 export async function fetchLinks(signal) {
   const res = await fetch(`${BASE}/api/links`, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

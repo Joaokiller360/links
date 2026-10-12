@@ -11,9 +11,13 @@ export async function readJson(file, fallback) {
 }
 
 // Escritura atómica: un corte a mitad no deja el archivo truncado.
-export async function writeJsonAtomic(file, data) {
+export async function writeFileAtomic(file, data) {
   await mkdir(dirname(file), { recursive: true });
   const tmp = `${file}.${process.pid}.tmp`;
-  await writeFile(tmp, JSON.stringify(data, null, 2));
+  await writeFile(tmp, data);
   await rename(tmp, file);
+}
+
+export async function writeJsonAtomic(file, data) {
+  await writeFileAtomic(file, JSON.stringify(data, null, 2));
 }

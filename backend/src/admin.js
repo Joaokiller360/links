@@ -1,5 +1,6 @@
 import express from 'express';
 import { adminEnabled, login, logout, requireAdmin } from './auth.js';
+import { AVATAR_MAX_BYTES, AVATAR_TYPES, deleteAvatar, imageType, saveAvatar } from './avatar.js';
 import { loadContent, saveContent, validateContent } from './content.js';
 import { deleteLead, listLeads } from './leads.js';
 
@@ -37,7 +38,38 @@ router.put(
   wrap(async (req, res) => {
     const { content, errors } = validateContent(req.body);
     if (errors.length) return res.status(400).json({ ok: false, errors });
+    // La foto solo cambia por /avatar; aquí se conserva la actual.
+    content.profile.avatar = (await loadContent()).profile.avatar ?? null;
     await saveContent(content);
+    res.json({ ok: true, content });
+  }),
+);
+
+// Guarda la versión de la foto en el perfil para que la URL pública cambie y no se sirva la vieja de caché.
+async function setAvatarVersion(avatar) {
+  const current = await loadContent();
+  const content = { ...current, profile: { ...current.profile, avatar } };
+  await saveContent(content);
+  return content;
+}
+
+router.put(
+  '/avatar',
+  express.raw({ type: AVATAR_TYPES, limit: AVATAR_MAX_BYTES }),
+  wrap(async (req, res) => {
+    if (!Buffer.isBuffer(req.body) || !imageType(req.body)) {
+      return res.status(400).json({ ok: false, error: 'invalid_image' });
+    }
+    await saveAvatar(req.body);
+    res.json({ ok: true, content: await setAvatarVersion(Date.now().toString(36)) });
+  }),
+);
+
+router.delete(
+  '/avatar',
+  wrap(async (_req, res) => {
+    const content = await setAvatarVersion(null);
+    await deleteAvatar();
     res.json({ ok: true, content });
   }),
 );
