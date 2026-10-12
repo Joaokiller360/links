@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { submitLead } from '../api.js';
 import { strings as t } from '../strings.js';
 
+const input =
+  'h-[38px] min-w-0 flex-1 rounded-lg border border-line bg-page px-3 text-[13px] text-ink placeholder:text-muted-2 focus:border-brand focus:outline-none aria-invalid:border-danger motion-safe:transition-colors max-[440px]:w-full max-[440px]:flex-none';
+
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[^\s@.]{2,}$/;
 
 export default function LeadForm() {
@@ -38,17 +41,18 @@ export default function LeadForm() {
             : null;
 
   return (
-    <section className="lead">
-      <h2 className="lead-title">
+    <section className="mt-6 rounded-xl border border-line bg-card p-4.5">
+      <h2 className="mb-3 text-[13px] font-semibold">
         <span aria-hidden="true">📬</span> {t.contactTitle}
       </h2>
       {status === 'done' ? (
-        <p className="lead-msg success" role="status">
+        <p className="text-[12.5px] text-brand" role="status">
           {message}
         </p>
       ) : (
-        <form className="lead-form" onSubmit={handleSubmit} noValidate>
+        <form className="flex gap-2 max-[440px]:flex-col" onSubmit={handleSubmit} noValidate>
           <input
+            className={input}
             type="text"
             name="name"
             autoComplete="name"
@@ -60,6 +64,7 @@ export default function LeadForm() {
             onChange={(e) => setName(e.target.value)}
           />
           <input
+            className={input}
             type="email"
             name="email"
             autoComplete="email"
@@ -70,13 +75,17 @@ export default function LeadForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <button type="submit" disabled={status === 'sending'}>
+          <button
+            className="h-[38px] flex-none cursor-pointer rounded-lg bg-brand px-4 text-[13px] font-bold text-brand-ink not-disabled:hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-progress disabled:opacity-70 motion-safe:transition-colors max-[440px]:w-full"
+            type="submit"
+            disabled={status === 'sending'}
+          >
             {status === 'sending' ? t.sending : t.submit}
           </button>
         </form>
       )}
       {status !== 'done' && message && (
-        <p className="lead-msg error" role="alert">
+        <p className="mt-2.5 text-[12.5px] text-danger-soft" role="alert">
           {message}
         </p>
       )}

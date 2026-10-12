@@ -4,6 +4,38 @@ import { avatarUrl } from '../api.js';
 import { safeUrl } from '../safeUrl.js';
 import Avatar from '../components/Avatar.jsx';
 
+// Clases compartidas del panel.
+const page = 'mx-auto max-w-[760px] px-4 pt-12 pb-14 max-[440px]:pt-9';
+const card = 'mb-4 flex flex-col gap-3.5 rounded-xl border border-line bg-card p-4.5';
+const itemBox = 'rounded-[10px] border border-line bg-page p-3.5';
+const row = 'flex items-center justify-between gap-3';
+const actions = 'flex gap-1.5';
+const h1 = 'text-[22px] font-bold tracking-[-0.01em]';
+const h2 = 'text-[15px] font-bold tracking-[-0.01em]';
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand';
+const control =
+  'min-h-9 w-full resize-y rounded-lg border border-line px-2.5 py-2 text-[13.5px] text-ink focus:border-brand focus:outline-none group-data-invalid:border-danger';
+const controlPage = `${control} bg-page`;
+const controlCard = `${control} bg-card`;
+const fieldLabel = 'flex min-w-0 flex-col gap-[5px] text-xs text-muted';
+const cell = 'border-b border-line px-2.5 py-2 text-left whitespace-nowrap';
+
+const msg = (error) => `text-[13px] ${error ? 'text-danger-soft' : 'text-muted'}`;
+
+function btn({ primary, danger, icon } = {}) {
+  return [
+    'inline-flex min-h-[34px] cursor-pointer items-center justify-center whitespace-nowrap rounded-lg border text-[13px] font-semibold disabled:cursor-default disabled:opacity-50',
+    focusRing,
+    icon ? 'w-[34px]' : 'px-3.5',
+    primary
+      ? 'border-brand bg-brand text-brand-ink not-disabled:hover:bg-brand-hover'
+      : 'border-line-hover text-ink not-disabled:hover:bg-card-hover',
+    danger && 'not-disabled:hover:border-danger not-disabled:hover:text-danger-soft',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 const TOKEN_KEY = 'adminToken';
 const NETWORKS = ['instagram', 'tiktok', 'youtube', 'x', 'github', 'linkedin', 'otro'];
 
@@ -78,12 +110,13 @@ function Login({ onLogin }) {
   }
 
   return (
-    <main className="page admin">
-      <form className="admin-card admin-login" onSubmit={handleSubmit}>
-        <h1>Panel de administración</h1>
-        <label className="field">
+    <main className={page}>
+      <form className={`${card} mx-auto mt-[10vh] max-w-[380px]`} onSubmit={handleSubmit}>
+        <h1 className={h1}>Panel de administración</h1>
+        <label className={fieldLabel}>
           <span>Correo</span>
           <input
+            className={controlPage}
             type="email"
             autoComplete="username"
             value={email}
@@ -91,20 +124,21 @@ function Login({ onLogin }) {
             autoFocus
           />
         </label>
-        <label className="field">
+        <label className={fieldLabel}>
           <span>Contraseña</span>
           <input
+            className={controlPage}
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </label>
-        <button className="btn primary" type="submit" disabled={busy || !email || !password}>
+        <button className={btn({ primary: true })} type="submit" disabled={busy || !email || !password}>
           {busy ? 'Entrando…' : 'Entrar'}
         </button>
-        {error && <p className="admin-msg error">{error}</p>}
-        <a className="admin-back" href="/">
+        {error && <p className={msg(true)}>{error}</p>}
+        <a className="text-[12.5px] text-muted" href="/">
           ← Volver a la página
         </a>
       </form>
@@ -125,19 +159,19 @@ function Dashboard({ token, onSignOut }) {
   }
 
   return (
-    <main className="page admin">
-      <header className="admin-header">
-        <h1>Panel</h1>
-        <div className="admin-actions">
-          <a className="btn" href="/" target="_blank" rel="noopener noreferrer">
+    <main className={page}>
+      <header className={row}>
+        <h1 className={h1}>Panel</h1>
+        <div className={actions}>
+          <a className={btn()} href="/" target="_blank" rel="noopener noreferrer">
             Ver página
           </a>
-          <button className="btn" type="button" onClick={handleSignOut}>
+          <button className={btn()} type="button" onClick={handleSignOut}>
             Salir
           </button>
         </div>
       </header>
-      <div className="admin-tabs" role="tablist">
+      <div className="mt-5 mb-4 inline-flex gap-0.5 rounded-full border border-line bg-card p-[3px]" role="tablist">
         {[
           ['links', 'Contenido'],
           ['leads', 'Contactos'],
@@ -147,7 +181,9 @@ function Dashboard({ token, onSignOut }) {
             type="button"
             role="tab"
             aria-selected={tab === id}
-            className={tab === id ? 'active' : ''}
+            className={`cursor-pointer rounded-full px-4 py-1.5 text-[13px] font-semibold ${focusRing} ${
+              tab === id ? 'bg-brand text-brand-ink' : 'text-muted'
+            }`}
             onClick={() => setTab(id)}
           >
             {label}
@@ -185,7 +221,9 @@ function ContentEditor({ token, onUnauthorized }) {
         setContent(data.content);
         setStatus({ kind: 'idle' });
       })
-      .catch((err) => (err.status === 401 ? onUnauthorized() : setStatus({ kind: 'error', text: 'No se pudo cargar.' })));
+      .catch((err) =>
+        err.status === 401 ? onUnauthorized() : setStatus({ kind: 'error', text: 'No se pudo cargar.' }),
+      );
   }, [token, onUnauthorized]);
 
   // Aplica un cambio sobre una copia y marca el formulario como modificado.
@@ -219,28 +257,34 @@ function ContentEditor({ token, onUnauthorized }) {
   }
 
   if (!content) {
-    return <p className="admin-msg">{status.kind === 'error' ? status.text : 'Cargando…'}</p>;
+    return <p className={msg(status.kind === 'error')}>{status.kind === 'error' ? status.text : 'Cargando…'}</p>;
   }
 
   const has = (path) => errors.includes(path);
   const { profile, links, socials } = content;
 
   return (
-    <div className="admin-editor">
-      <section className="admin-card">
-        <h2>Perfil</h2>
+    <div>
+      <section className={card}>
+        <h2 className={h2}>Perfil</h2>
         <AvatarPicker
           token={token}
           profile={profile}
           onUnauthorized={onUnauthorized}
           onChange={(avatar) => setContent((prev) => ({ ...prev, profile: { ...prev.profile, avatar } }))}
         />
-        <div className="grid-2">
+        <div className="grid grid-cols-2 gap-2.5 max-[600px]:grid-cols-1">
           <Field label="Nombre" invalid={has('profile.name')}>
-            <input value={profile.name} maxLength={60} onChange={(e) => edit((c) => (c.profile.name = e.target.value))} />
+            <input
+              className={controlPage}
+              value={profile.name}
+              maxLength={60}
+              onChange={(e) => edit((c) => (c.profile.name = e.target.value))}
+            />
           </Field>
           <Field label="Iniciales (si no hay foto)" invalid={has('profile.initials')}>
             <input
+              className={controlPage}
               value={profile.initials}
               maxLength={3}
               onChange={(e) => edit((c) => (c.profile.initials = e.target.value))}
@@ -248,6 +292,7 @@ function ContentEditor({ token, onUnauthorized }) {
           </Field>
           <Field label="Frase · una línea por renglón, máx. 3" invalid={has('profile.tagline')} wide>
             <textarea
+              className={controlPage}
               rows={3}
               value={profile.tagline.join('\n')}
               onChange={(e) => edit((c) => (c.profile.tagline = e.target.value.split('\n').slice(0, 3)))}
@@ -256,11 +301,11 @@ function ContentEditor({ token, onUnauthorized }) {
         </div>
       </section>
 
-      <section className="admin-card">
-        <div className="admin-card-head">
-          <h2>Links</h2>
+      <section className={card}>
+        <div className={row}>
+          <h2 className={h2}>Links</h2>
           <button
-            className="btn"
+            className={btn()}
             type="button"
             disabled={links.length >= 30}
             onClick={() => edit((c) => c.links.push(emptyLink()))}
@@ -268,22 +313,32 @@ function ContentEditor({ token, onUnauthorized }) {
             + Añadir link
           </button>
         </div>
-        {links.length === 0 && <p className="admin-msg">Todavía no hay links.</p>}
+        {links.length === 0 && <p className={msg()}>Todavía no hay links.</p>}
         {links.map((link, i) => (
-          <div key={i} className="admin-item">
-            <div className="admin-item-head">
-              <strong>
+          <div key={i} className={`${itemBox} flex flex-col gap-2.5`}>
+            <div className={row}>
+              <strong className="truncate text-[13.5px]">
                 {link.icon} {link.title || 'Link sin título'}
               </strong>
-              <div className="admin-actions">
-                <button className="btn icon" type="button" aria-label="Subir" onClick={() => edit((c) => move(c.links, i, -1))}>
+              <div className={actions}>
+                <button
+                  className={btn({ icon: true })}
+                  type="button"
+                  aria-label="Subir"
+                  onClick={() => edit((c) => move(c.links, i, -1))}
+                >
                   ↑
                 </button>
-                <button className="btn icon" type="button" aria-label="Bajar" onClick={() => edit((c) => move(c.links, i, 1))}>
+                <button
+                  className={btn({ icon: true })}
+                  type="button"
+                  aria-label="Bajar"
+                  onClick={() => edit((c) => move(c.links, i, 1))}
+                >
                   ↓
                 </button>
                 <button
-                  className="btn icon danger"
+                  className={btn({ icon: true, danger: true })}
                   type="button"
                   aria-label="Eliminar"
                   onClick={() => edit((c) => c.links.splice(i, 1))}
@@ -292,12 +347,18 @@ function ContentEditor({ token, onUnauthorized }) {
                 </button>
               </div>
             </div>
-            <div className="grid-link">
+            <div className="grid grid-cols-[90px_1fr] gap-2.5">
               <Field label="Icono" invalid={has(`links.${i}.icon`)}>
-                <input value={link.icon} maxLength={8} onChange={(e) => edit((c) => (c.links[i].icon = e.target.value))} />
+                <input
+                  className={controlCard}
+                  value={link.icon}
+                  maxLength={8}
+                  onChange={(e) => edit((c) => (c.links[i].icon = e.target.value))}
+                />
               </Field>
               <Field label="URL (https://)" invalid={has(`links.${i}.url`) || !safeUrl(link.url)}>
                 <input
+                  className={controlCard}
                   type="url"
                   value={link.url}
                   maxLength={500}
@@ -305,20 +366,27 @@ function ContentEditor({ token, onUnauthorized }) {
                 />
               </Field>
             </div>
-            <div className="grid-2">
+            <div className="grid grid-cols-2 gap-2.5 max-[600px]:grid-cols-1">
               <Field label="Título" invalid={has(`links.${i}.title`)}>
-                <input value={link.title} maxLength={80} onChange={(e) => edit((c) => (c.links[i].title = e.target.value))} />
+                <input
+                  className={controlCard}
+                  value={link.title}
+                  maxLength={80}
+                  onChange={(e) => edit((c) => (c.links[i].title = e.target.value))}
+                />
               </Field>
               <Field label="Subtítulo · opcional" invalid={has(`links.${i}.subtitle`)}>
                 <input
+                  className={controlCard}
                   value={link.subtitle}
                   maxLength={120}
                   onChange={(e) => edit((c) => (c.links[i].subtitle = e.target.value))}
                 />
               </Field>
             </div>
-            <label className="check">
+            <label className="flex items-center gap-2 text-[13px] text-muted">
               <input
+                className="accent-brand"
                 type="checkbox"
                 checked={link.primary}
                 onChange={(e) => edit((c) => (c.links[i].primary = e.target.checked))}
@@ -329,11 +397,11 @@ function ContentEditor({ token, onUnauthorized }) {
         ))}
       </section>
 
-      <section className="admin-card">
-        <div className="admin-card-head">
-          <h2>Redes sociales</h2>
+      <section className={card}>
+        <div className={row}>
+          <h2 className={h2}>Redes sociales</h2>
           <button
-            className="btn"
+            className={btn()}
             type="button"
             disabled={socials.length >= 10}
             onClick={() => edit((c) => c.socials.push(emptySocial()))}
@@ -342,9 +410,16 @@ function ContentEditor({ token, onUnauthorized }) {
           </button>
         </div>
         {socials.map((s, i) => (
-          <div key={i} className="admin-item grid-social">
+          <div
+            key={i}
+            className={`${itemBox} grid grid-cols-[130px_1fr_1.6fr_auto] items-end gap-2.5 max-[600px]:grid-cols-1`}
+          >
             <Field label="Red" invalid={has(`socials.${i}.network`)}>
-              <select value={s.network} onChange={(e) => edit((c) => (c.socials[i].network = e.target.value))}>
+              <select
+                className={controlCard}
+                value={s.network}
+                onChange={(e) => edit((c) => (c.socials[i].network = e.target.value))}
+              >
                 {NETWORKS.map((n) => (
                   <option key={n} value={n}>
                     {n}
@@ -353,13 +428,24 @@ function ContentEditor({ token, onUnauthorized }) {
               </select>
             </Field>
             <Field label="Usuario" invalid={has(`socials.${i}.handle`)}>
-              <input value={s.handle} maxLength={40} onChange={(e) => edit((c) => (c.socials[i].handle = e.target.value))} />
+              <input
+                className={controlCard}
+                value={s.handle}
+                maxLength={40}
+                onChange={(e) => edit((c) => (c.socials[i].handle = e.target.value))}
+              />
             </Field>
             <Field label="URL (https://)" invalid={has(`socials.${i}.url`) || !safeUrl(s.url)}>
-              <input type="url" value={s.url} maxLength={500} onChange={(e) => edit((c) => (c.socials[i].url = e.target.value))} />
+              <input
+                className={controlCard}
+                type="url"
+                value={s.url}
+                maxLength={500}
+                onChange={(e) => edit((c) => (c.socials[i].url = e.target.value))}
+              />
             </Field>
             <button
-              className="btn icon danger"
+              className={btn({ icon: true, danger: true })}
               type="button"
               aria-label="Eliminar red"
               onClick={() => edit((c) => c.socials.splice(i, 1))}
@@ -370,14 +456,21 @@ function ContentEditor({ token, onUnauthorized }) {
         ))}
       </section>
 
-      <div className="admin-savebar">
-        <span className={`admin-msg${status.kind === 'error' ? ' error' : ''}`}>
+      <div
+        className={`${row} sticky bottom-3 rounded-xl border border-line-hover bg-card/95 px-3.5 py-3 backdrop-blur-[6px]`}
+      >
+        <span className={msg(status.kind === 'error')}>
           {status.kind === 'dirty' && 'Cambios sin guardar'}
           {status.kind === 'saving' && 'Guardando…'}
           {status.kind === 'saved' && 'Guardado ✓'}
           {status.kind === 'error' && status.text}
         </span>
-        <button className="btn primary" type="button" onClick={handleSave} disabled={status.kind === 'saving'}>
+        <button
+          className={btn({ primary: true })}
+          type="button"
+          onClick={handleSave}
+          disabled={status.kind === 'saving'}
+        >
           Guardar cambios
         </button>
       </div>
@@ -431,16 +524,16 @@ function AvatarPicker({ token, profile, onChange, onUnauthorized }) {
   }
 
   return (
-    <div className="admin-avatar">
+    <div className="flex flex-wrap items-center gap-3.5">
       <Avatar initials={profile.initials} photo={avatarUrl(profile.avatar)} />
-      <div className="admin-actions">
+      <div className={actions}>
         <input ref={input} type="file" accept="image/*" hidden onChange={handleFile} />
-        <button className="btn" type="button" disabled={busy} onClick={() => input.current.click()}>
+        <button className={btn()} type="button" disabled={busy} onClick={() => input.current.click()}>
           {busy ? 'Subiendo…' : profile.avatar ? 'Cambiar foto' : 'Subir foto'}
         </button>
         {profile.avatar && (
           <button
-            className="btn danger"
+            className={btn({ danger: true })}
             type="button"
             disabled={busy}
             onClick={() => window.confirm('¿Quitar la foto?') && run(() => adminApi.deleteAvatar(token))}
@@ -449,14 +542,14 @@ function AvatarPicker({ token, profile, onChange, onUnauthorized }) {
           </button>
         )}
       </div>
-      {error && <p className="admin-msg error">{error}</p>}
+      {error && <p className={`${msg(true)} basis-full`}>{error}</p>}
     </div>
   );
 }
 
 function Field({ label, invalid, wide, children }) {
   return (
-    <label className={`field${invalid ? ' invalid' : ''}${wide ? ' wide' : ''}`}>
+    <label className={`group ${fieldLabel}${wide ? ' col-span-full' : ''}`} data-invalid={invalid || undefined}>
       <span>{label}</span>
       {children}
     </label>
@@ -487,33 +580,38 @@ function Leads({ token, onUnauthorized }) {
     }
   }
 
-  if (error) return <p className="admin-msg error">{error}</p>;
-  if (!leads) return <p className="admin-msg">Cargando…</p>;
+  if (error) return <p className={msg(true)}>{error}</p>;
+  if (!leads) return <p className={msg()}>Cargando…</p>;
 
   return (
-    <section className="admin-card">
-      <h2>Contactos ({leads.length})</h2>
+    <section className={card}>
+      <h2 className={h2}>Contactos ({leads.length})</h2>
       {leads.length === 0 ? (
-        <p className="admin-msg">Nadie ha dejado su correo todavía.</p>
+        <p className={msg()}>Nadie ha dejado su correo todavía.</p>
       ) : (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Fecha</th>
-                <th />
+                <th className={`${cell} font-semibold text-muted`}>Nombre</th>
+                <th className={`${cell} font-semibold text-muted`}>Correo</th>
+                <th className={`${cell} font-semibold text-muted`}>Fecha</th>
+                <th className={cell} />
               </tr>
             </thead>
             <tbody>
               {[...leads].reverse().map((l) => (
                 <tr key={l.email}>
-                  <td>{l.name}</td>
-                  <td>{l.email}</td>
-                  <td>{new Date(l.createdAt).toLocaleString()}</td>
-                  <td>
-                    <button className="btn icon danger" type="button" aria-label="Eliminar" onClick={() => handleDelete(l.email)}>
+                  <td className={cell}>{l.name}</td>
+                  <td className={cell}>{l.email}</td>
+                  <td className={cell}>{new Date(l.createdAt).toLocaleString()}</td>
+                  <td className={cell}>
+                    <button
+                      className={btn({ icon: true, danger: true })}
+                      type="button"
+                      aria-label="Eliminar"
+                      onClick={() => handleDelete(l.email)}
+                    >
                       ✕
                     </button>
                   </td>

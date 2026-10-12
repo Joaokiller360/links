@@ -28,7 +28,12 @@ function LinkIcon() {
 
 export default function SocialChip({ network, handle, url }) {
   return (
-    <a className="social-chip" href={safeUrl(url)} target="_blank" rel="noopener noreferrer">
+    <a
+      className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-4 py-[7px] text-[12.5px] text-chip hover:border-line-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand motion-safe:transition-colors"
+      href={safeUrl(url)}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       {network === 'instagram' ? <InstagramIcon /> : <LinkIcon />}
       <span>{handle}</span>
     </a>

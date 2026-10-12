@@ -2,6 +2,7 @@ import { copyFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 // Copia index.html a dist/admin/ para que /admin funcione en cualquier hosting estático
 // sin configurar reescrituras.
@@ -21,7 +22,7 @@ function adminRoute() {
 }
 
 export default defineConfig({
-  plugins: [react(), adminRoute()],
+  plugins: [react(), tailwindcss(), adminRoute()],
   server: {
     port: 5173,
     proxy: {
